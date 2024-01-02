@@ -44,3 +44,12 @@ SLAVE 1 - (WATER PUMP)
 
 SLAVE2 - (DISTANCE SENSOR)
 ![Slave2](https://github.com/Utkancelik/Smart-Hydrocare/assets/56562121/d0d403fd-f0f5-4828-8ef2-6582424d1633)
+
+
+
+
+
+
+
+
+Project In Action Link : https://www.youtube.com/watch?v=fDZGt3CCCHc&ab_channel=YarenG%C3%BClay%C3%87a%C4%9Flar
