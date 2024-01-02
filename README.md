@@ -16,6 +16,9 @@ Configure the system parameters.
 Enjoy optimized plant care with minimal effort!
 
 
+Project In Action Link : https://www.youtube.com/watch?v=fDZGt3CCCHc&ab_channel=YarenG%C3%BClay%C3%87a%C4%9Flar
+
+
 GENERAL LAYOUT
 ![BOARD_lAYOUT](https://github.com/Utkancelik/Smart-Hydrocare/assets/56562121/edfa6d1a-824a-4220-a86c-0bfcc6b66596)
 
@@ -52,4 +55,4 @@ SLAVE2 - (DISTANCE SENSOR)
 
 
 
-Project In Action Link : https://www.youtube.com/watch?v=fDZGt3CCCHc&ab_channel=YarenG%C3%BClay%C3%87a%C4%9Flar
+
