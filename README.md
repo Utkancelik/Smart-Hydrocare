@@ -1,5 +1,5 @@
 Smart Hydrocare
-Smart Hydrocare is an innovative project developed collaboratively by [Your Name], [Friend 1's Name], and [Friend 2's Name]. This intelligent plant watering system aims to optimize water consumption for healthier and more vibrant plants.
+Smart Hydrocare is an innovative project developed collaboratively by Utkan Çelik, Yaren Gülay Çağlar and Eylül Haydaroğlu. This intelligent plant watering system aims to optimize water consumption for healthier and more vibrant plants.
 
 Features:
 Smart Watering Algorithm: Utilizing advanced sensors and weather data, Smart Hydrocare intelligently determines the optimal amount of water each plant needs.
