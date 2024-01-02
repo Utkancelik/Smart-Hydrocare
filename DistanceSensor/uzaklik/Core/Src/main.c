@@ -18,9 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32f3xx_hal_conf.h"
@@ -43,18 +41,18 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c1;
+UART_HandleTypeDef huart4;
 
 /* USER CODE BEGIN PV */
-uint32_t time;
-uint16_t distance;
-uint16_t wlevel;
+
+uint8_t distance;
+uint8_t wlevel[3]={0,0,0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_I2C1_Init(void);
+static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -62,7 +60,7 @@ static void MX_I2C1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint32_t sensor_time;
-uint16_t distance;
+
 
 uint32_t Read_HCSR04()
 {
@@ -114,22 +112,13 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2C1_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
   DWT_Delay_Init();
 
 
-   HD44780_Init(2);
-     HD44780_Clear();
-     HD44780_SetCursor(0,0);
-     HD44780_PrintStr("HELLO");
-   HAL_Delay(1000);
 
 
-
-
-
-   char snum[3];
 
   /* USER CODE END 2 */
 
@@ -138,59 +127,34 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  HD44780_SetCursor(0,0);
 
-	  HD44780_PrintStr("WATER LEVEL:%");
-		  sensor_time = Read_HCSR04();			// get the high time
-		  	  distance = sensor_time * .034 / 2;	// user the formula to get the distance
+      sensor_time = Read_HCSR04();			// get the high time
+	  	  distance = sensor_time * .034 / 2;	// user the formula to get the distance
 
-		  	  wlevel = (28-distance) *5;
-		  	if(distance>28){
-		  		wlevel=0;
-		  		snum[2]=' ';
-		  		snum[1]=' ';
-		  		itoa(wlevel,snum,10);
-		  		HD44780_SetCursor(13,0);
-		  		HD44780_PrintStr(snum);
-		  			  	  }
-		  	else if(wlevel>100){
-		  		wlevel=100;
-		  		itoa(wlevel,snum,10);
-		  		HD44780_SetCursor(13,0);
-		  		HD44780_PrintStr(snum);
-		  	  }
 
-		  	  else {
-		  	  itoa(wlevel,snum,10);
-		  	HD44780_SetCursor(13,0);
-		  	snum[2]=' ';
-		  	HD44780_PrintStr(snum);
+    if (distance<12){
+    	wlevel[0]=0;
+    }
+    else if (distance<16){
+    	wlevel[0]=1;
+    }
 
-		  	  }
+    else if (distance<20){
+        	wlevel[0]=2;
+        }
+    else if (distance<24){
+        	wlevel[0]=3;
+        }
+    else{
+    	wlevel[0]=4;
+    }
 
-		  /* if (28>distance>8){
-		  			  	  wlevel = (28-distance) *5;
-		  			  	  itoa(wlevel,snum,10);
-		  			  	  HD44780_SetCursor(13,0);
-		  			  	  HD44780_PrintStr(snum);
-		  			  	  }
-		  			  	  else if(distance <8){
-		  			  		 wlevel=100;
-		  			  		itoa(wlevel,snum,10);
-		  			  		HD44780_SetCursor(13,0);
-		  			  		HD44780_PrintStr(snum);
-		  			  	  }
-		  			  	  else{
-		  			  		wlevel=0;
-		  			  		itoa(wlevel,snum,10);
-		  			  		HD44780_SetCursor(13,0);
-		  			  		HD44780_PrintStr(snum);
-		  			  	  }*/
-	  }
+	  	HAL_StatusTypeDef status = HAL_UART_Transmit (&huart4,wlevel, sizeof (wlevel), 10);
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
-
+}
 
 /**
   * @brief System Clock Configuration
@@ -210,8 +174,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
-  RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL11;
+  RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -226,12 +190,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_I2C1;
-  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_UART4;
+  PeriphClkInit.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -239,50 +203,37 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief I2C1 Initialization Function
+  * @brief UART4 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_I2C1_Init(void)
+static void MX_UART4_Init(void)
 {
 
-  /* USER CODE BEGIN I2C1_Init 0 */
+  /* USER CODE BEGIN UART4_Init 0 */
 
-  /* USER CODE END I2C1_Init 0 */
+  /* USER CODE END UART4_Init 0 */
 
-  /* USER CODE BEGIN I2C1_Init 1 */
+  /* USER CODE BEGIN UART4_Init 1 */
 
-  /* USER CODE END I2C1_Init 1 */
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x2000090E;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  /* USER CODE END UART4_Init 1 */
+  huart4.Instance = UART4;
+  huart4.Init.BaudRate = 115200;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
   {
     Error_Handler();
   }
+  /* USER CODE BEGIN UART4_Init 2 */
 
-  /** Configure Analogue filter
-  */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Digital filter
-  */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
+  /* USER CODE END UART4_Init 2 */
 
 }
 
@@ -300,6 +251,7 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -317,6 +269,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB8 PB9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
